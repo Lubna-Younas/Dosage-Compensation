@@ -234,9 +234,9 @@ mkdir rawdata
 #SBATCH --array=1-6
 
 FASTQFILE=$SLURM_SUBMIT_DIR/inputfiles_.txt; export FASTQFILE
-make --file /apps/hicpro/2.10.0/scripts/Makefile CONFIG_FILE=config-hicpro_Dmel.txt CONFIG_SYS=/apps/hicpro/2.10.0/config-system.txt all_sub 2>&1
+make --file /apps/hicpro/2.11.1/scripts/Makefile CONFIG_FILE=config-hicpro_Dmel.txt CONFIG_SYS=/apps/hicpro/2.10.0/config-system.txt all_sub 2>&1
 
 
 cd $SLURM_SUBMIT_DIR
 
-make --file /apps/hicpro/2.10.0/scripts/Makefile CONFIG_FILE=config-hicpro_Dmel.txt CONFIG_SYS=/apps/hicpro/2.10.0/config-system.txt all_persample 2>&1
+make --file /apps/hicpro/2.11.1/scripts/Makefile CONFIG_FILE=config-hicpro_Dmel.txt CONFIG_SYS=/apps/hicpro/2.10.0/config-system.txt all_persample 2>&1
