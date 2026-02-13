@@ -10,10 +10,10 @@
 
 module load bowtie2 hicpro samtools
 
-#fa=Dmel.chr.fa
-#fa=$1
+fa=Dmel.chr.fa
+fa=$1
 
-/apps/hicpro/2.10.0/bin/utils/digest_genome.py -r DpnII -o Dmel_DpnII.bed $fa
+/apps/hicpro/2.11.1/bin/utils/digest_genome.py -r DpnII -o Dmel_DpnII.bed $fa
 
 #!/usr/bin/env /apps/python3/3.10.4/bin/python3
 
