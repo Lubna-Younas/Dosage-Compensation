@@ -1,1 +1,47 @@
+#!/bin/bash
 
+#SBATCH --job-name=chipseq
+#SBATCH --partition=basic
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=4000
+#SBATCH --output=depth-%j.out
+#SBATCH --error=depth-%j.err
+#SBATCH --constraint=array-20core
+
+module load samtools
+module load bowtie2
+module load bedtools
+
+genome0=$1
+reads10=$2
+reads20=$3
+size=$4
+dir=`pwd`
+
+genome=$(echo ${genome0##*/})
+reads1=$(echo ${reads10##*/})
+reads2=$(echo ${reads20##*/})
+
+#bowtie2 index $genome
+
+# copy all data to $TMPDIR
+cp /scratch/Dmel/Hi-C/bowtie2_index/${genome}.* $TMPDIR
+cp $reads10 $reads20 $TMPDIR
+
+cd $TMPDIR
+
+# mapping the reads, select unique reads, and sort the bam file
+bowtie2 -p 8 -x $genome -1 $reads1 -2 $reads2 | samtools view -q 30 -hS - |  grep -e "^@" -e "XM:i:[012][^0-9]"  |  grep -v "XS:i:" | samtools sort -@ 8 -o $genome.$size.uniq.sorted.bam  - -O BAM
+
+
+samtools rmdup  $genome.$size.uniq.sorted.bam $genome.$size.uniq.sorted.rmdup.bam
+cp $genome.$size.uniq.sorted.rmdup.bam  $dir
+
+samtools index $genome.$size.uniq.sorted.rmdup.bam
+cp $genome.$size.uniq.sorted.rmdup.bam.bai $dir
+
+# count reads
+bedtools genomecov -ibam $genome.$size.uniq.sorted.rmdup.bam -g $genome -d > $genome.$size.uniq.sorted.rmdup.bam.count
+
+## copy the results from $TMPDIR
+cp $genome.$size.uniq.sorted.rmdup.bam.count $dir
