@@ -64,7 +64,35 @@ bedtools genomecov -ibam $genome.$size.uniq.sorted.rmdup.bam -g $genome -d > $ge
 
 ## copy the results from $TMPDIR
 cp $genome.$size.uniq.sorted.rmdup.bam.count $dir
-____________________________________________________________________________________________________________________________
+
+#################################### ChIP vs Input ratio ############################
+
+#!/bin/bash
+
+#SBATCH --job-name=chipInputRatio
+#SBATCH --partition=basic
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=2000
+#SBATCH --output=depth-%j.out
+#SBATCH --error=depth-%j.err
+#SBATCH --constraint=array-20core
+
+chip=$1
+input=$2
+
+ln -s /scratch/Dmel/Dmel.chr.fa_bowtie.$chip.uniq.sorted.rmdup.bam.count
+ln -s /scratch/Dmel/Dmel.chr.fa_bowtie.$input.uniq.sorted.rmdup.bam.count
+
+module load bedtools
+
+# for genes
+cat $chip | awk '{print $1"\t"$2-1"\t"$2"\t"$3}' | bedtools map -c 4 -o sum,count -b - -a /scratch/Dmel/bowtie2_index/dmel-all-filtered-r6.30_chr.gff > $chip.gene
+cat $input | awk '{print $1"\t"$2-1"\t"$2"\t"$3}' | bedtools map -c 4 -o sum,count -b - -a /scratch/Dmel/bowtie2_index/dmel-all-filtered-r6.30_chr.gff > $input.gene
+
+# get the ratio for genic region
+cat $chip.gene | awk 'BEGIN{while(getline < "'$input'.gene"){a[$1"_"$4]=$10}}{print $0"\t"a[$1"_"$4]}' | awk '$NF>0{print $0"\t"($(NF-2)+1)/($NF+1)}' > $chip.gene.ratio
+
+
 #################################### Peak Calling with MACS3 ############################
 
 #!/bin/bash
