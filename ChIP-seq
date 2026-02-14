@@ -116,4 +116,52 @@ macs3 callpeak -t $chip -c $input  -f BAMPE -g dm -n $out.uniq.peaks -q 0.01 --s
 
 ###############################  Matrix generation with Deeptools #######################
 
+#!/bin/bash
 
+#SBATCH --job-name=chipseq
+#SBATCH --partition=basic,himem
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=4000
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=lubna.ma528@gmail.com
+#SBATCH --output=depth-%j.out
+#SBATCH --error=depth-%j.err
+
+chip=$1
+input=$2
+sample=$3
+
+export PATH="/apps/python3/3.9.0/bin/:$PATH"
+
+bamCoverage -b $chip -o $chip_bamCoverage.bw --skipNAs --effectiveGenomeSize 134742296 --ignoreDuplicates --minMappingQuality 10 -p 16
+
+bamCompare -b1 $chip -b2 $input -p 16 --effectiveGenomeSize 134742296 --skipNAs -bs 10 --minMappingQuality 10 \
+--scaleFactorsMethod readCount -o /scratch/Dmel/H4K16ac/$sample.bamCompare.bw --ignoreDuplicates
+
+computeMatrix scale-regions -S $sample.bamCompare.bw -R /scratch/Dmel/bowtie2_index/dmel-all-r6.30_chrX.gtf \
+/scratch/Dmel/bowtie2_index/dmel-all-r6.30_chr3R.gtf --startLabel TSS --endLabel TES -b 1000 -a 1000 \
+--missingDataAsZero -m 3000 -bs 10 --sortRegions descend -o $sample.log2ratio.matrix.gz -p 20
+
+computeMatrixOperations sort -m matrix.gz -o sort.matrix.gz -R sortedRegions.bed
+
+plotHeatmap -m $input -o $out.pdf --colorMap Spectral_r --sortRegions descend -z "X" "2L" -y 'log2 IP/Input ratio' \
+--dpi 300 --startLabel TSS --endLabel TTS --samplesLabel 'H4K16ac'
+
+
+###############################  Intervene #######################
+
+#!/bin/bash
+
+#SBATCH --job-name=metaplot
+#SBATCH --partition=basic
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=12000
+#SBATCH --output=depth-%j.out
+#SBATCH --error=depth-%j.err
+#SBATCH --constraint=array-20core
+
+module load intervene/
+module load bedtools/
+
+intervene upset --bedtools-options f=1,r -i Emb.all.bed Lm.all.bed Hm.all.bed Tm.all.bed --type list \
+--save-overlaps --names Emb,Lm,Hm,Tm --mbcolor "#b2182b" --sbcolor "#2166ac" -o all_upset
