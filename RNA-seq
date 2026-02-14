@@ -8,18 +8,75 @@
 #SBATCH --error=depth-%j.err
 #SBATCH --time=00:55:00
 
-
-
-
 reads1=$1
 reads2=$2
 out3=$3
-out4=$4
-out5=$5
-out6=$6
-#reads1=$(echo ${reads10##*/})
-#reads2=$(echo ${reads20##*/})
 
-#ln -s /lisc/archive/molevo/ali/RNA.activity/combined_fq/$reads1 ./
-#ln -s /lisc/archive/molevo/ali/RNA.activity/combined_fq/$reads2 ./
+reads1=$(echo ${reads10##*/})
+reads2=$(echo ${reads20##*/})
+
+ln -s /lisc/archive/molevo/RNA.activity/combined_fq/$reads1 ./
+ln -s /lisc/archive/molevo/RNA.activity/combined_fq/$reads2 ./
+
+/lisc/app/trimmomatic/0.39/trimmomatic PE -phred33 /lisc/archive/molevo/RNA.activity/combined_fq/c1B1_EKRN240034037-1A_227W5WLT4_L5_1.fq.gz \ 
+/lisc/archive/molevo/RNA.activity/combined_fq/c1B1_EKRN240034037-1A_227W5WLT4_L5_2.fq.gz trimmed.fq1.gz trimmed.fq2.gz \
+LEADING:3 TRAILING:3 MINLEN:36 SLIDINGWINDOW:4:15 ILLUMINACLIP:/lisc/app/trimmomatic/0.39/adapters/TruSeq3-PE.fa:2:30:10
+
+###################### Mapping using rsem tool ############################################
+
+#!/bin/bash
+
+#SBATCH --job-name=rsem
+#SBATCH --partition=basic
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=12G
+#SBATCH --output=rsem-%j.out
+#SBATCH --error=rsem-%j.err
+#SBATCH --constraint=array-20core
+
+module load rsem
+module load bowtie2
+
+
+# bowtie2
+rsem-calculate-expression /proj/dmel/FASTA/SRR1197330_1.fastq.gz,/proj/dmel/FASTA/SRR1197365_1.fastq.gz,/proj/dmel/FASTA/SRR767605_1.fastq.gz \
+/proj/dmel/FASTA/SRR1197330_2.fastq.gz,/proj/dmel/FASTA/SRR1197365_2.fastq.gz,/proj/dmel/FASTA/SRR767605_2.fastq.gz \
+/scratch/Dmel/bowtie2_index/Dmel-r6.30_rsem.index Emb_16-18h --bowtie2 -p 64 --paired-end --sort-bam-by-coordinate --output-genome-bam
+
+###################### feature count ############################################
+
+#!/bin/bash
+
+#SBATCH --job-name=star_map
+#SBATCH --partition=basic
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=6G
+#SBATCH --output=depth-%j.out
+#SBATCH --error=depth-%j.err
+#SBATCH --time=10:00:00
+
+module load star
+module load samtools
+module load subread
+R1=$1
+R2=$2
+out=$3
+
+STAR --runMode alignReads --runThreadN 2 --genomeDir /lisc/scratch/molevo/Dmel/bowtie2_index --readFilesIn $R1 $R2 \
+--sjdbGTFfile /lisc/scratch/molevo/Dmel/bowtie2_index/dmel-all-r6.30.chr.gtf \
+--readFilesCommand gunzip -c --outFileNamePrefix $out. --outSAMtype BAM SortedByCoordinate  \
+--quantMode GeneCounts --sjdbOverhang 100 --twopassMode Basic
+
+samtools index $out.Aligned.sortedByCoord.out.bam
+samtools flagstat $out.Aligned.sortedByCoord.out.bam > $out.report.txt
+
+mv $out.Aligned.sortedByCoord.out.bam $out.Aligned.sortedByCoord.bam
+samtools index $out.Aligned.sortedByCoord.bam
+
+/lisc/app/subread/2.0.6/bin/featureCounts -T 4 --ignoreDup -a /lisc/scratch/molevo/Dmel/bowtie2_index/dmel-all-r6.30.chr.gtf \
+-g gene_id  -o $out.exon.gene_name.txt $out.Aligned.sortedByCoord.bam -t exon -p
+
+
+awk -F"\t" '{print $1"\t"$7}' $out.exon.gene_name.txt > $out.exon.gene_name.counts.txt
+#awk -F"\t" '{print $1}' $out.exon.gene_name.txt > $out.features.txt
 
