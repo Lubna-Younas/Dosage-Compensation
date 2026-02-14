@@ -45,3 +45,25 @@ bedtools genomecov -ibam $genome.$size.uniq.sorted.rmdup.bam -g $genome -d > $ge
 
 ## copy the results from $TMPDIR
 cp $genome.$size.uniq.sorted.rmdup.bam.count $dir
+____________________________________________________________________________________________________________________________
+#################################### Peak Calling with MACS3 ############################
+
+#!/bin/bash
+
+#SBATCH --job-name=macs2
+#SBATCH --partition=basic
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=1000
+#SBATCH --mail-type=ALL
+#SBATCH --output=depth-%j.out
+#SBATCH --error=depth-%j.err
+#SBATCH --constraint=array-20core
+
+export PATH="/apps/python3/3.9.0//bin/:$PATH"
+
+chip=$1
+input=$2
+out=$3
+
+macs3 callpeak -t $chip -c $input  -f BAMPE -g dm -n $out.uniq.peaks -q 0.01 --scale-to large --call-summits
+
