@@ -1,1 +1,25 @@
+#!/bin/bash
+
+#SBATCH --job-name=Trim
+#SBATCH --partition=basic
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=1500M
+#SBATCH --output=depth-%j.out
+#SBATCH --error=depth-%j.err
+#SBATCH --time=00:55:00
+
+
+
+
+reads1=$1
+reads2=$2
+out3=$3
+out4=$4
+out5=$5
+out6=$6
+#reads1=$(echo ${reads10##*/})
+#reads2=$(echo ${reads20##*/})
+
+#ln -s /lisc/archive/molevo/ali/RNA.activity/combined_fq/$reads1 ./
+#ln -s /lisc/archive/molevo/ali/RNA.activity/combined_fq/$reads2 ./
 
