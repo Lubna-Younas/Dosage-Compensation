@@ -1,3 +1,22 @@
+############################### Fastq data quality check and trimming  ####################
+#!/bin/bash
+
+#SBATCH --job-name=fastp_b1
+#SBATCH --partition=basic
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=12000M
+#SBATCH --output=depth-%j.out
+#SBATCH --error=depth-%j.err
+#SBATCH --time=00:45:00
+
+module load fastp
+
+R1=$1
+R2=$2
+out=$3
+fastp -i $R1 -I $R2 -o $out.fq1.trimmed.gz -O $out.fq2.trimmed.gz --phred64 --detect_adapter_for_pe --dedup --dup_calc_accuracy 3 --overrepresentation_analysis  -R fastp_QC_report
+
+############################### Alignment of trimmed reads ####################################
 #!/bin/bash
 
 #SBATCH --job-name=chipseq
@@ -66,4 +85,7 @@ input=$2
 out=$3
 
 macs3 callpeak -t $chip -c $input  -f BAMPE -g dm -n $out.uniq.peaks -q 0.01 --scale-to large --call-summits
+
+###############################  Matrix generation with Deeptools #######################
+
 
