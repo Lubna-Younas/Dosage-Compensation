@@ -8,22 +8,10 @@
 #SBATCH --error=nuc-%j.err
 #SBATCH --constraint=array-20core
 
-module load bowtie2 hicpro samtools
 
-fa=Dmel.chr.fa
 fa=$1
 
-/apps/hicpro/2.11.1/bin/utils/digest_genome.py -r DpnII -o Dmel_DpnII.bed $fa
-
-#!/usr/bin/env /apps/python3/3.10.4/bin/python3
-
-# HiC-Pro
-# Copyleft 2015 Institut Curie
-# Author(s): Nelle Varoquaux, Nicolas Servant
-# Contact: nicolas.servant@curie.fr
-# This software is distributed without any guarantee under the terms of the
-# GNU General
-# Public License, either Version 2, June 1991 or Version 3, June 2007.
+/apps/hicpro/2.11.1/bin/utils/digest_genome.py -r ^GATC -o Dmel_digested.genome.bed $fa
 
 """
 Script to extract restriction fragment from a fasta file and output a BED file
@@ -210,6 +198,24 @@ if __name__ == "__main__":
                     frag_id += 1
                     frag_name = "HIC_{}_{}".format(str(chrom_name), int(frag_id))
                     outfile.write("{}\t{}\t{}\t{}\t0\t+\n".format(str(chrom_name), int(begin), int(end), str(frag_name)))
+
+
+######################################################## Hi-C data mapping using HiCPro ####################################
+
+#!/bin/bash
+
+#SBATCH --job-name=HiCPro
+#SBATCH --partition=basic
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=1000
+#SBATCH --output=nuc-%j.out
+#SBATCH --error=nuc-%j.err
+#SBATCH --constraint=array-20core
+
+module load bowtie2 hicpro samtools
+
+fa =$1
+
 samtools faidx $fa
 cut -f 1,2 $fa.fai > $fa.sizes
 
@@ -221,6 +227,8 @@ mkdir rawdata
 # create hicpro submission scripts (-p)
 /apps/hicpro/2.11.1/bin/HiC-Pro -i rawdata -o rawdata.out -c config-hicpro_Dmel.txt -p
 # submit HiCPro command for maping and conatct matrix creation
+
+
 #!/bin/bash
 
 #SBATCH --job-name=HicPro
