@@ -176,3 +176,56 @@ fanc subset $matrix $out $chr
 
 fanc compartments -e $out.X.pdf $matrix $out.X.ab -s 0 -p 10 20 30 40 50 60 70 80 90 100 -g ../bowtie2_index/Dmel.chr.fa -x 2L 2R 3L 3R \
 --compartment-strength $out.strength.X.txt -f -v $out.ev.X.txt --recalculate
+
+###################################### Hi-C compare: male vs female HiC signal ratio  ##################################################
+
+
+#!/bin/bash
+
+#SBATCH --job-name=Dmel
+#SBATCH --partition=basic
+#SBATCH --cpus-per-task=5
+#SBATCH --mem=4G
+#SBATCH --output=nuc-%j.out
+#SBATCH --error=nuc-%j.err
+#SBATCH --constraint=array-20core
+
+module load bwa samtools bowtie2
+
+sample=$1
+genome=$2
+
+export PATH=/home/user/miniconda3/bin:$PATH
+
+/apps/python3/3.7.0/bin/fanc compare -c fold-change --log -Z -tmp $input1 $input2 $output
+
+###################################### Aggregate matrix ##################################################################
+
+
+#!/bin/bash
+
+#SBATCH --job-name=HicExplorer
+#SBATCH --partition=basic
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=8000
+#SBATCH --mail-type=ALL
+#SBATCH --output=h5-%j.out
+#SBATCH --error=h5-%j.err
+#SBATCH --constraint=array-1core|array-4core
+#SBATCH --time=10:00:00
+
+module unload python3
+module load python3/3.9.16
+
+export PATH=/apps/hicexplorer/3.7.1/bin/:$PATH
+
+#matrix=$1
+#bed=$2
+#out=$3
+
+/home/apps/conda/miniconda3/envs/hicexplorer-3.7.2/bin/hicAggregateContacts --matrix $matrix --BED $bed --outFileName $out.pdf --outFileContactPairs $out \
+--range 1000000:20000000 --numberOfBins 30 --chromosomes X --operationType mean --transform obs/exp --plotType 3d \
+--mode intra-chr --perChr --vMin 0.90 --vMax 1.35
+
+
+
