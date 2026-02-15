@@ -90,7 +90,7 @@ ALLELE_SPECIFIC_SNP =
 ## Digestion Hi-C
 #######################################################################
 
-GENOME_FRAGMENT = Dmel.chr.fa_DpnII.bed
+GENOME_FRAGMENT = Dmel_digested.genome.bed
 LIGATION_SITE = GATCGATC
 MIN_FRAG_SIZE =
 MAX_FRAG_SIZE =
