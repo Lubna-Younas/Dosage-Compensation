@@ -32,8 +32,6 @@ make --file /apps/hicpro/2.11.1/scripts/Makefile CONFIG_FILE=config-hicpro_Dmel.
 
 ## Configuration file used
 
-# Please change the variable settings below if necessary
-
 #########################################################################
 ## Paths and Settings  - Do not edit !
 #########################################################################
@@ -219,13 +217,53 @@ module load python3/3.9.16
 
 export PATH=/apps/hicexplorer/3.7.1/bin/:$PATH
 
-#matrix=$1
-#bed=$2
-#out=$3
+matrix=$1
+bed=$2
+out=$3
 
 /home/apps/conda/miniconda3/envs/hicexplorer-3.7.2/bin/hicAggregateContacts --matrix $matrix --BED $bed --outFileName $out.pdf --outFileContactPairs $out \
 --range 1000000:20000000 --numberOfBins 30 --chromosomes X --operationType mean --transform obs/exp --plotType 3d \
 --mode intra-chr --perChr --vMin 0.90 --vMax 1.35
+
+
+##################################### Distance vs count decay plot #########################################################
+
+#!/bin/bash
+
+#SBATCH --job-name=DistVsCounts
+#SBATCH --partition=basic
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=12000M
+#SBATCH --mail-type=ALL
+#SBATCH --output=h5-%j.out
+#SBATCH --error=h5-%j.err
+#SBATCH --constraint=array-20core
+
+input=$1
+out=$2
+
+/apps/hicexplorer/3.7.1/bin/hicConvertFormat -m $input.matrix --bedFileHicpro $input.abs.bed -o $out.cool --inputFormat hicpro --outputFormat cool
+
+/apps/hicexplorer/3.7.1/bin/hicPlotDistVsCounts -m $out.cool -o $out.DistVsCounts.pdf --outFileData $out.DistVsCounts.bed --maxdepth 20000000 --skipDiagonal --labels 2L 2R 3L 3R X --perchr --plotsize 5 4.2
+
+#################################### TAD calling ##########################################################################
+
+
+#!/bin/bash
+
+#SBATCH --job-name=DistVsCounts
+#SBATCH --partition=basic
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=12000M
+#SBATCH --mail-type=ALL
+#SBATCH --output=h5-%j.out
+#SBATCH --error=h5-%j.err
+#SBATCH --constraint=array-20core
+
+input=$1
+out=$2
+
+/apps/hicexplorer/3.6/bin/hicFindTADs -m $input --correctForMultipleTesting fdr --outPrefix $out --thresholdComparisons 0.001 --delta 0.04 --minBoundaryDistance 20000 --numberOfProcessors 64
 
 
 
