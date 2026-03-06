@@ -1,1 +1,72 @@
+#use stringtie to obtain a consensus transcriptome for testis
 
+for i in *.bam
+do
+name=$(basename $i .bam)
+stringtie -G dmel-all.gtf -o $name.gtf -A $name.tsv $i
+done
+
+stringtie --merge *.gtf -o dmel_testis_merged.gtf -G dmel-all.gtf -l dmel_testis_merged
+
+
+#make a list of every stringtie feature that doesn't overlap an annotated flybase transcript
+comm -13 FBgn.txt <(cat dmel_testis_merged.gtf| awk '{if ($3=="transcript") print $10, $NF }' | grep -v FB | awk '{print $1}' |sort -u) > nonFBgn.txt
+
+#single-exon de novo genes, make a plus and minus strand version of each.  This way, the reference is prepared for whatever strand the single-cell data identifies the de novo transcript on.
+cat dmel_testis_merged.gtf | awk '{if ($7==".") print $0}'|awk -F"\t" '{OFS=FS}{ $7="+" ; print   }' | awk '{gsub(/merged./, "mergedplus."); print}' > dmel_testis_merged_plus
+cat dmel_testis_merged.gtf | awk '{if ($7==".") print $0}'|awk -F"\t" '{OFS=FS}{ $7="-" ; print   }'  | awk '{gsub(/merged./, "mergedminus."); print}' > dmel_testis_merged_minus
+cat dmel_testis_merged.gtf | awk '{if ($7==".") print $0}'> dmel_testis_merged_unstranded.gtf
+
+
+#names of unannotated stringtie features with blast hits to segregating and fixed de novo genes from zhao et. al 2014 are in denovonames2.txt
+
+#make a list of non FBgn genes that match zhao et. al 2014 de novo genes
+ grep -wFf <(sed 's/"//g' nonFBgn.txt| sed 's/;//g'|sort -u |awk '{print $1}') <(sort -u denovonames2.txt| awk '{print $1}') |awk '{print $1}'| sed 's/\r//'  > nonFBgn2.txt
+
+
+#Add stringtie features matching de novo genes to flybase annotation file
+rm 180731_dmel_testis_AG_mergedref_notFBgn
+for i in `cat nonFBgn2.txt`
+do
+grep -wF $i dmel_testis_merged_unstranded.gtf| awk -F"\t" '{OFS=FS}{ $7="+" ; print   }' | awk '{gsub(/merged./, "mergedplus."); print}'>> dmel_testis_mergedref_notFBgn
+grep -wF  $i dmel_testis_merged_unstranded.gtf |awk -F"\t" '{OFS=FS}{ $7="-" ; print   }'  | awk '{gsub(/merged./, "mergedminus."); print}' >> dmel_testis_mergedref_notFBgn
+grep -wF $i dmel_testis_merged_everythingelse2 >> dmel_testis_mergedref_notFBgn
+done
+
+sort -u dmel_testis_mergedref_notFBgn -o dmel_testis_mergedref_notFBgn
+
+cat dmel_testis_mergedref_notFBgn dmel.cellranger.gtf |grep -v FBgn0002781 |sort -u  > dmel_testis_mergedref_notFBgn.gtf
+
+#add plus features, minus features and normal stranded features
+rm -rf dmel_testis_mergedref_notFBgn
+
+ 
+#make reference with combined gtf
+cellranger mkref --genome=dmel_testis_mergedref_FBgn --fasta=dmel-all-chromosome.fasta --genes=dmel_testis_mergedref_notFBgn.gtf
+
+#run cellranger
+
+rm -rf 180731_517_novogene
+
+cellranger count --force-cells=5000  --id=novogene --fastqs=raw_data/Dm_R517 --chemistry=SC3Pv2 --transcriptome=dmel_testis_mergedref_FBgn 
+
+echo "finished cellranger"
+
+#add gene short names to TSV file 
+cp genesbackup.tsv
+cat  dmel_cellranger.gtf |grep FBgn | awk '{if ($3=="gene") print $10, $12}' | sed 's/"//g' | sed 's/;//g' |sort -u > genenames.txt
+
+Rscript merged_and_ordered.R genes.tsv genenames.txt genes2.tsv
+i=$(wc -l 180731_517_novogene/outs/filtered_gene_bc_matrices/genesbackup.tsv|awk '{print $1}' )
+tail -n $i genes2.tsv | sed 's/"//g' | awk -v OFS='\t' '{if ($4 != "NA") print $2, $4; else if ($4 == "NA") print $2, $2 }' > genes3.tsv
+cp genes.tsv
+rm genenames.txt
+rm genes2.tsv
+rm genes3.tsv
+
+echo "finished clean up"
+
+
+Rscript seurmo.r
+
+echo "finished seurat"
