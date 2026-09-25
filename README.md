@@ -337,7 +337,7 @@ python scripts/05_figures/plot_browser_tracks.py \
 
 ## Statistical Analysis
 
-All Wilcoxon rank-sum tests reported in the manuscript use **Benjamini-Hochberg false discovery rate (FDR) correction** applied within each figure/analysis class.
+All two sided Wilcoxon rank-sum tests reported in the manuscript use **Benjamini-Hochberg false discovery rate (FDR) correction** applied within each figure/analysis class.
 
 ```bash
 # Example: FDR correction for Figure 2 LRC comparisons
@@ -373,29 +373,20 @@ https://github.com/ankushsawant/chromatin_3D/issues
 
 If you use this code or data, please cite:
 
-> Sawant A, Ahmed ST, Moshahid J, Thakur P, Jha P, Habib F, R C. 
-> Developmental and Epigenetic Variations of Drosophila Dosage Compensated 
-> Genes with Their Distinct Chromatin Architecture and Segregated Modules. 
+> Lubna Younas1,2,3, Mujahid Ali2,4, Xinpei Zhang5, Huangyi He1,5, Catherine Regnard6, Qi Zhou1,2,5,7,8*. 
+> Dosage compensation is regulated by segregated chromatin modules during development in Drosophila
 > *Molecular Systems Biology*. [In press]
-
----
-
-## License
-
-This project is licensed under the MIT License. See `LICENSE` file for details.
 
 ---
 
 ## Contact
 
-**Ankush Sawant** — Corresponding Author  
-Email: [your.email@institution.edu]  
-Twitter: [@ankush_sawant1](https://twitter.com/ankush_sawant1)  
-GitHub: [ankushsawant](https://github.com/ankushsawant)
+Lubna Younas — First Author  
+Email: [lubna.ma528@gmail.com]  
+GitHub: [LubnaYounas](https://github.com/Lubna-Younas/Dosage-Compensation/edit/Dosage-Compensation)
 
 ---
 
 ## Acknowledgements
 
-This work was supported by NIH grant R01GM116000, American Cancer Society grant 
-RSG-16-186-01, and the Howard Hughes Medical Institute (HHMI) Investigator award.
+This work was supported by the European Research Council Starting Grant.
