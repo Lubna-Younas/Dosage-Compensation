@@ -1,6 +1,6 @@
 # chromatin_3D
 
-Analysis pipeline for **"Developmental and Epigenetic Variations of Drosophila Dosage Compensated Genes with Their Distinct Chromatin Architecture and Segregated Modules"**
+Analysis pipeline for **"Dosage compensation is regulated by segregated chromatin modules during development in Drosophila"**
 
 ---
 
