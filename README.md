@@ -130,7 +130,7 @@ pybedtools>=0.8.0
 
 ```bash
 # Clone repository
-git clone https://github.com/ankushsawant/chromatin_3D.git
+git clone https://github.com/chromatin_3D.git
 cd chromatin_3D
 
 # Create conda environment
@@ -145,7 +145,7 @@ Rscript scripts/install_r_packages.R
 
 ```bash
 # Clone repository
-git clone https://github.com/ankushsawant/chromatin_3D.git
+git clone https://github.com/chromatin_3D.git
 cd chromatin_3D
 
 # Install Python dependencies
@@ -365,7 +365,7 @@ Rscript scripts/06_statistics/wilcoxon_fdr.R \
 ### Getting Help
 
 For bugs or questions, please open an issue on GitHub:  
-https://github.com/ankushsawant/chromatin_3D/issues
+https://github.com/chromatin_3D/issues
 
 ---
 
