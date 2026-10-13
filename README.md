@@ -173,12 +173,12 @@ Rscript scripts/install_r_packages.R
 
 | Dataset | GEO Accession | Description |
 |---------|--------------|-------------|
-| Embryo Hi-C | GSE15292 | Stage 5, 8, 16 embryos (Hou et al., 2012) |
-| Larva Hi-C | GSE220639 | Third instar larvae (Szabo et al., 2023) |
+| Embryo Hi-C | GSE94115 | Stage 5, 8, 16 embryos (Hou et al., 2012) |
+| Larva/Head/Ovary/Testis Hi-C | GSE348666 | Third instar larvae |
 | Head/Ovary ChIP | GSE44210 | Adult head and ovary (Brown et al., 2014) |
 | Testis ChIP | GSE15292 | Adult testis (Gan et al., 2010) |
 
-New data generated in this study: **GEO GSE260170**
+New data generated in this study: **GEO GSE348666**
 
 ---
 
